@@ -61,7 +61,6 @@ const config: ForgeConfig = {
           owner: "vitaliyslion",
           name: "vs-servermanager",
         },
-        prerelease: true,
       },
     },
   ],
