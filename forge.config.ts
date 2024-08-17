@@ -59,7 +59,7 @@ const config: ForgeConfig = {
       config: {
         repository: {
           owner: "Vitalii Pedchenko",
-          name: "Vintage Story Server Manager",
+          name: "vs-servermanager",
         },
         prerelease: true,
       },
