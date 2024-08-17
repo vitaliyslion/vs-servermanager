@@ -7,7 +7,10 @@ on:
 jobs:
 
   publish_on_win:
-    permissions: write-all
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4       
