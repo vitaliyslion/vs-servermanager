@@ -58,7 +58,7 @@ const config: ForgeConfig = {
       name: "@electron-forge/publisher-github",
       config: {
         repository: {
-          owner: "Vitalii Pedchenko",
+          owner: "vitaliyslion",
           name: "vs-servermanager",
         },
         prerelease: true,
