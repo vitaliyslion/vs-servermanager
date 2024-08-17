@@ -38,6 +38,7 @@ const api: Window["api"] = {
     }
   },
   installDotnet: () => ipcRenderer.invoke("installDotnet"),
+  generateBackup: () => ipcRenderer.invoke("generateBackup"),
 };
 
 contextBridge.exposeInMainWorld("api", api);

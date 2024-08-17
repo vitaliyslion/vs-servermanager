@@ -90,6 +90,8 @@ const createWindow = () => {
   ipcMain.handle("installDotnet", async () => {
     await Dotnet.install();
   });
+
+  ipcMain.handle("generateBackup", async () => server.generateBackup());
 };
 
 // This method will be called when Electron has finished
