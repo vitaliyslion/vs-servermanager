@@ -5,6 +5,7 @@ import { LogsOutput } from "./components/LogsOutput";
 import { CommandInput } from "./components/CommandInput";
 import { Launch } from "./components/Launch";
 import { MainControlsPanel } from "./components/MainControlsPanel";
+import { TooltipProvider } from "./components/ui/tooltip";
 
 export const App: React.FC = () => {
   const [running, setRunning] = useState(false);
@@ -47,7 +48,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <>
+    <TooltipProvider delayDuration={300}>
       <Launch>
         <div className="h-screen flex flex-col p-2 space-y-2">
           <MainControlsPanel
@@ -61,6 +62,6 @@ export const App: React.FC = () => {
         </div>
       </Launch>
       <Toaster />
-    </>
+    </TooltipProvider>
   );
 };

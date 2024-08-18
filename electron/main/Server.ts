@@ -2,16 +2,20 @@ import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { Dotnet } from "./Dotnet";
 import { ConfigUtil } from "./ConfigUtil";
 import { ValidationError, ValidationIssue } from "@/errors/ValidatorError";
-import { Channel, parseMessage } from "@/lib/parseMessage";
+import { Channel } from "@/lib/parseMessage";
 import { format } from "date-fns";
+import { LogsHandler } from "./LogsHandler";
 
 export class Server {
+  private logsHandler: LogsHandler;
   private process: ChildProcessWithoutNullStreams | null = null;
   private isCalendarRunning = false;
 
-  private logsSubscribers: ((message: string) => void)[] = [];
+  constructor(private webContents: Electron.WebContents) {
+    this.logsHandler = new LogsHandler();
 
-  constructor(private webContents: Electron.WebContents) {}
+    this.watchCalendar();
+  }
 
   validate() {
     const issues: ValidationIssue[] = [];
@@ -31,27 +35,22 @@ export class Server {
     return issues;
   }
 
+  private watchCalendar() {
+    this.logsHandler.permanentWatch({
+      channel: Channel.ServerNotification,
+      message: "All clients disconnected, pausing game calendar.",
+      callback: () => (this.isCalendarRunning = false),
+    });
+    this.logsHandler.permanentWatch({
+      channel: Channel.ServerNotification,
+      message: "A client reconnected, resuming game calendar.",
+      callback: () => (this.isCalendarRunning = true),
+    });
+  }
+
   private cleanup() {
     this.process = null;
     this.isCalendarRunning = false;
-  }
-
-  private processLogMessage(logMessage: string) {
-    const { channel, message } = parseMessage(logMessage);
-
-    if (
-      channel === Channel.ServerNotification &&
-      message === "All clients disconnected, pausing game calendar."
-    ) {
-      this.isCalendarRunning = false;
-    }
-
-    if (
-      channel === Channel.ServerNotification &&
-      message === "A client reconnected, resuming game calendar."
-    ) {
-      this.isCalendarRunning = true;
-    }
   }
 
   start() {
@@ -79,10 +78,8 @@ export class Server {
     this.process.stdout.on("data", (data) => {
       const message = data.toString();
 
-      this.logsSubscribers.forEach((subscriber) => subscriber(message));
+      this.logsHandler.pushLog(message);
       this.webContents.send("server:stdout", message);
-
-      this.processLogMessage(message);
     });
 
     this.process.stderr.on("data", (data) => {
@@ -115,81 +112,29 @@ export class Server {
     });
   }
 
-  private subscribeToLogs(callback: (message: string) => void) {
-    this.logsSubscribers.push(callback);
-
-    return () => {
-      this.logsSubscribers = this.logsSubscribers.filter(
-        (subscriber) => subscriber !== callback
-      );
-    };
-  }
-
   sendCommand(command: string) {
     if (this.process) {
       this.process.stdin.write(command + "\r\n");
     }
   }
 
-  generateBackup() {
-    return new Promise<string>((resolve, reject) => {
-      if (this.process) {
-        const name = `vssm-${format(new Date(), "yyyy-MM-dd_HH-mm-ss")}.vcdbs`;
-        let isStarted = false;
-        let notStartedTimeout: NodeJS.Timeout | null = null;
-        let notFinishedTimeout: NodeJS.Timeout | null = null;
-        let unsubscribeFromLogs: () => void | null = null;
+  async generateBackup() {
+    const name = `vssm-${format(new Date(), "yyyy-MM-dd_HH-mm-ss")}.vcdbs`;
 
-        const cleanup = () => {
-          clearTimeout(notStartedTimeout);
-          clearTimeout(notFinishedTimeout);
-          unsubscribeFromLogs?.();
-        };
-
-        const onStarted = () => {
-          isStarted = true;
-          clearTimeout(notStartedTimeout);
-
-          notFinishedTimeout = setTimeout(() => {
-            cleanup();
-            reject("Failed to finish backup");
-          }, 1000 * 60 * 5);
-        };
-
-        const onFinished = () => {
-          cleanup();
-          resolve(name);
-        };
-
-        notStartedTimeout = setTimeout(() => {
-          if (!isStarted) {
-            cleanup();
-            reject("Failed to start backup");
-          }
-        }, 1000 * 30);
-
-        unsubscribeFromLogs = this.subscribeToLogs((message) => {
-          const { channel, message: parsedMessage } = parseMessage(message);
-
-          if (
-            channel === Channel.ServerNotification &&
-            parsedMessage === "Ok, generating backup, this might take a while"
-          ) {
-            onStarted();
-          }
-
-          if (
-            channel === Channel.ServerNotification &&
-            parsedMessage === "Backup complete!"
-          ) {
-            onFinished();
-          }
-        });
-
+    await this.logsHandler.watch({
+      start: {
+        channel: Channel.ServerNotification,
+        message: "Ok, generating backup, this might take a while",
+      },
+      end: {
+        channel: Channel.ServerNotification,
+        message: "Backup complete!",
+      },
+      trigger: () => {
         this.sendCommand(`/genbackup ${name}`);
-      } else {
-        reject("Not running");
-      }
+      },
     });
+
+    return name;
   }
 }

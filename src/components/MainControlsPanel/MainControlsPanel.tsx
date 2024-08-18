@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { Cog, HardDriveDownload } from "lucide-react";
 import { PreferencesDialog } from "../PreferencesDialog";
 import { useToast } from "../ui/use-toast";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 export interface MainControlsPanelProps {
   className?: string;
@@ -62,15 +63,20 @@ export const MainControlsPanel: React.FC<MainControlsPanelProps> = ({
   return (
     <div className={cn("flex justify-between space-x-4", className)}>
       <div>
-        <Button
-          variant="secondary"
-          size="icon"
-          disabled={!isRunning}
-          isLoading={backupInProgress}
-          onClick={handleBackupClick}
-        >
-          <HardDriveDownload />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger>
+            <Button
+              variant="secondary"
+              size="icon"
+              disabled={!isRunning}
+              isLoading={backupInProgress}
+              onClick={handleBackupClick}
+            >
+              <HardDriveDownload />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Generate Backup</TooltipContent>
+        </Tooltip>
       </div>
       <div className="flex space-x-4">
         <Button
