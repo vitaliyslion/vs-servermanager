@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
-import { Cog, HardDriveDownload } from "lucide-react";
-import { PreferencesDialog } from "../PreferencesDialog";
+import { HardDriveDownload, Play, Square } from "lucide-react";
 import { useToast } from "../ui/use-toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { PreferencesSheet } from "../PreferencesSheet";
 
 export interface MainControlsPanelProps {
   className?: string;
@@ -18,7 +18,6 @@ export const MainControlsPanel: React.FC<MainControlsPanelProps> = ({
   onToggle,
 }) => {
   const { toast } = useToast();
-  const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [backupInProgress, setBackupInProgress] = useState(false);
 
   const handleBackupClick = async () => {
@@ -64,7 +63,7 @@ export const MainControlsPanel: React.FC<MainControlsPanelProps> = ({
     <div className={cn("flex justify-between space-x-4", className)}>
       <div>
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <Button
               variant="secondary"
               size="icon"
@@ -79,25 +78,22 @@ export const MainControlsPanel: React.FC<MainControlsPanelProps> = ({
         </Tooltip>
       </div>
       <div className="flex space-x-4">
-        <Button
-          onClick={handleToggleClick}
-          variant={isRunning ? "destructive" : "default"}
-        >
-          {isRunning ? "Stop" : "Start"}
-        </Button>
-        <Button
-          variant="secondary"
-          size="icon"
-          onClick={() => setPreferencesOpen(true)}
-        >
-          <Cog />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              variant={isRunning ? "destructive" : "default"}
+              onClick={handleToggleClick}
+            >
+              {isRunning ? <Square /> : <Play />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {isRunning ? "Stop Server" : "Start Server"}
+          </TooltipContent>
+        </Tooltip>
+        <PreferencesSheet />
       </div>
-
-      <PreferencesDialog
-        open={preferencesOpen}
-        onClose={() => setPreferencesOpen(false)}
-      />
     </div>
   );
 };

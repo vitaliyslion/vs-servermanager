@@ -55,8 +55,11 @@ export class ConfigUtil {
     return this.config;
   }
 
-  static saveConfig(config: Config) {
-    this.config = config;
+  static saveConfig(config: Partial<Config>) {
+    this.config = {
+      ...(this.config || {}),
+      ...config,
+    };
 
     this.save();
   }
