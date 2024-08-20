@@ -5,14 +5,18 @@ import { ValidationError, ValidationIssue } from "@/errors/ValidatorError";
 import { Channel } from "@/lib/parseMessage";
 import { format } from "date-fns";
 import { LogsHandler } from "./LogsHandler";
+import { BackupScheduler } from "./BackupScheduler";
 
 export class Server {
   private logsHandler: LogsHandler;
+  private backupScheduler: BackupScheduler;
   private process: ChildProcessWithoutNullStreams | null = null;
-  private isCalendarRunning = false;
+  isCalendarRunning = false;
+  private calendarListeners: ((isRunning: boolean) => void)[] = [];
 
   constructor(private webContents: Electron.WebContents) {
     this.logsHandler = new LogsHandler();
+    this.backupScheduler = new BackupScheduler(this);
 
     this.watchCalendar();
   }
@@ -39,12 +43,18 @@ export class Server {
     this.logsHandler.permanentWatch({
       channel: Channel.ServerNotification,
       message: "All clients disconnected, pausing game calendar.",
-      callback: () => (this.isCalendarRunning = false),
+      callback: () => {
+        this.isCalendarRunning = false;
+        this.calendarListeners.forEach((listener) => listener(false));
+      },
     });
     this.logsHandler.permanentWatch({
       channel: Channel.ServerNotification,
       message: "A client reconnected, resuming game calendar.",
-      callback: () => (this.isCalendarRunning = true),
+      callback: () => {
+        this.isCalendarRunning = true;
+        this.calendarListeners.forEach((listener) => listener(true));
+      },
     });
   }
 
@@ -118,8 +128,11 @@ export class Server {
     }
   }
 
-  async generateBackup() {
-    const name = `vssm-${format(new Date(), "yyyy-MM-dd_HH-mm-ss")}.vcdbs`;
+  async generateBackup(prefix = "") {
+    const name = `${prefix}vssm-${format(
+      new Date(),
+      "yyyy-MM-dd_HH-mm-ss"
+    )}.vcdbs`;
 
     await this.logsHandler.watch({
       start: {
@@ -136,5 +149,25 @@ export class Server {
     });
 
     return name;
+  }
+
+  addEventListener(
+    event: "calendarChanged",
+    listener: (isRunning: boolean) => void
+  ) {
+    if (event === "calendarChanged") {
+      this.calendarListeners.push(listener);
+    }
+  }
+
+  removeEventListener(
+    event: "calendarChanged",
+    listener: (isRunning: boolean) => void
+  ) {
+    if (event === "calendarChanged") {
+      this.calendarListeners = this.calendarListeners.filter(
+        (l) => l !== listener
+      );
+    }
   }
 }

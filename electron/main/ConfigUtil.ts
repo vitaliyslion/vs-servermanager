@@ -8,10 +8,18 @@ export interface Config {
   serverDataPath?: string;
   port?: number;
   dotnetPath?: string;
+
+  periodicBackup?: {
+    enabled: boolean;
+    rule?: string;
+    maxBufferSizeInGb?: number;
+  };
 }
 
 export class ConfigUtil {
   private static config: Config | null = null;
+
+  private static changeListeners: Array<(config: Config) => void> = [];
 
   private static get configPath() {
     return `${app.getPath("userData")}/config.json`;
@@ -61,7 +69,14 @@ export class ConfigUtil {
       ...config,
     };
 
+    this.changeListeners.forEach((listener) => listener(this.config));
     this.save();
+  }
+
+  static addEventListener(event: "change", listener: (config: Config) => void) {
+    if (event === "change") {
+      this.changeListeners.push(listener);
+    }
   }
 
   static async initiateDllPathDialog() {

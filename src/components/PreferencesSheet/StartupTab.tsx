@@ -18,7 +18,7 @@ export const StartupTab: React.FC<StartupTabProps> = ({ className }) => {
     register,
     handleSubmit,
     getValues,
-    formState: { isValid, isSubmitting },
+    formState: { isValid },
   } = useForm<{
     serverDllPath: string;
     serverDataPath: string;
@@ -121,11 +121,7 @@ export const StartupTab: React.FC<StartupTabProps> = ({ className }) => {
         </div>
       </div>
       <div className="flex flex-row-reverse">
-        <Button
-          onClick={handleSubmit(handleSave)}
-          disabled={!isValid}
-          isLoading={isSubmitting}
-        >
+        <Button onClick={handleSubmit(handleSave)} disabled={!isValid}>
           Save changes
         </Button>
       </div>

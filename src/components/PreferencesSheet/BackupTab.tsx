@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
@@ -9,27 +9,59 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { Input } from "../ui/input";
+import { FormField } from "../FormField";
+import { Button } from "../ui/button";
 
 export interface BackupTabProps {
   className?: string;
 }
 
 export const BackupTab: React.FC<BackupTabProps> = ({ className }) => {
-  const { control, watch } = useForm<{
+  const {
+    control,
+    watch,
+    resetField,
+    handleSubmit,
+    formState: { isValid },
+    getValues,
+    reset,
+  } = useForm<{
     periodicBackup: {
       enabled: boolean;
       rule?: string;
+      maxBufferSizeInGb?: number;
     };
   }>({
     defaultValues: {
       periodicBackup: {
         enabled: false,
         rule: undefined,
+        maxBufferSizeInGb: 12,
       },
     },
   });
 
+  useEffect(() => {
+    window.api.getConfig().then((config) => {
+      if (config.periodicBackup) {
+        reset({
+          periodicBackup: config.periodicBackup,
+        });
+      }
+    });
+  }, []);
+
+  const handleSave = () => window.api.saveConfig(getValues());
+
   const isEnabled = watch("periodicBackup.enabled");
+
+  useEffect(() => {
+    if (!isEnabled) {
+      resetField("periodicBackup.rule");
+      resetField("periodicBackup.maxBufferSizeInGb");
+    }
+  }, [isEnabled]);
 
   return (
     <div className={className}>
@@ -46,25 +78,78 @@ export const BackupTab: React.FC<BackupTabProps> = ({ className }) => {
             />
           </div>
           {isEnabled && (
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Frequency</Label>
-              <Controller
-                control={control}
-                name="periodicBackup.rule"
-                render={({ field: { value, onChange } }) => (
-                  <Select value={value} onValueChange={onChange}>
-                    <SelectTrigger className="col-span-2">
-                      <SelectValue placeholder="Every..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="* 1 * * *">1 hour</SelectItem>
-                      <SelectItem value="* 2 * * *">2 hours</SelectItem>
-                      <SelectItem value="* 6 * * *">6 hours</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
+            <>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Frequency</Label>
+                <Controller
+                  control={control}
+                  name="periodicBackup.rule"
+                  rules={{
+                    validate: (value, formState) =>
+                      formState.periodicBackup.enabled && !!value
+                        ? true
+                        : "Frequency is required",
+                  }}
+                  render={({
+                    field: { value, onChange },
+                    fieldState: { error },
+                  }) => (
+                    <FormField className="col-span-2" error={error?.message}>
+                      <Select value={value} onValueChange={onChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Every..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0 */1 * * *">1 hour</SelectItem>
+                          <SelectItem value="0 */2 * * *">2 hours</SelectItem>
+                          <SelectItem value="0 */3 * * *">3 hours</SelectItem>
+                          <SelectItem value="0 */6 * * *">6 hours</SelectItem>
+                          <SelectItem value="0 */12 * * *">12 hours</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormField>
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <div className="text-right">
+                  <Label>Max buffer size (in GB)</Label>
+                </div>
+                <Controller
+                  control={control}
+                  name="periodicBackup.maxBufferSizeInGb"
+                  rules={{
+                    min: {
+                      value: 1,
+                      message: "Value should be greater than 1",
+                    },
+                    max: {
+                      value: 128,
+                      message: "Value should be lower than 128",
+                    },
+                  }}
+                  render={({ field, fieldState: { error } }) => (
+                    <FormField className="flex flex-col col-span-2">
+                      <Input type="number" {...field} />
+                      {error && (
+                        <span className="text-sm text-red-600 mt-1">
+                          {error?.message}
+                        </span>
+                      )}
+                    </FormField>
+                  )}
+                />
+                <p className="text-sm text-muted-foreground">
+                  In case the value is lower than latest backup size, the backup
+                  will always be preserved
+                </p>
+              </div>
+              <div className="flex flex-row-reverse">
+                <Button onClick={handleSubmit(handleSave)} disabled={!isValid}>
+                  Save changes
+                </Button>
+              </div>
+            </>
           )}
         </div>
       </div>
