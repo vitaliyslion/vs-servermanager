@@ -94,11 +94,7 @@ export const StartupTab: React.FC<StartupTabProps> = ({ className }) => {
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
           <Label className="text-right">Dotnet Path</Label>
-          <Input
-            className="col-span-2"
-            {...register("dotnetPath", { required: true })}
-            readOnly
-          />
+          <Input className="col-span-2" {...register("dotnetPath")} readOnly />
           <BrowseButton onClick={handleDotnetBrowse} />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
