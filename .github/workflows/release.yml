@@ -3,15 +3,11 @@ on:
   release:
     types:
       - created
-      - released
 
 jobs:
 
   publish_on_win:
-    permissions:
-      contents: write
-      pull-requests: write
-      repository-projects: write
+    permissions: write-all
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4       
