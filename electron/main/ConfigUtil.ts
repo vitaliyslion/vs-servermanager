@@ -69,6 +69,8 @@ export class ConfigUtil {
       ...config,
     };
 
+    console.log("Saving config", this.config);
+
     this.changeListeners.forEach((listener) => listener(this.config));
     this.save();
   }

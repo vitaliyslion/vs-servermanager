@@ -100,11 +100,13 @@ export const BackupTab: React.FC<BackupTabProps> = ({ className }) => {
                           <SelectValue placeholder="Every..." />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="0 */1 * * *">1 hour</SelectItem>
-                          <SelectItem value="0 */2 * * *">2 hours</SelectItem>
-                          <SelectItem value="0 */3 * * *">3 hours</SelectItem>
-                          <SelectItem value="0 */6 * * *">6 hours</SelectItem>
-                          <SelectItem value="0 */12 * * *">12 hours</SelectItem>
+                          <SelectItem value="50 */1 * * *">1 hour</SelectItem>
+                          <SelectItem value="50 */2 * * *">2 hours</SelectItem>
+                          <SelectItem value="50 */3 * * *">3 hours</SelectItem>
+                          <SelectItem value="50 */6 * * *">6 hours</SelectItem>
+                          <SelectItem value="50 */12 * * *">
+                            12 hours
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </FormField>
