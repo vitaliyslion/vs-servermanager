@@ -1,15 +1,24 @@
 import React, { useEffect, useRef } from "react";
 import { ScrollArea } from "../ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { parseMessage } from "@/lib/parseMessage";
 
 export interface LogWindowProps {
   className?: string;
   messages: string[];
+  stripChannel?: boolean;
 }
+
+const stripChannel = (logMessage: string) => {
+  const { datetime, message } = parseMessage(logMessage);
+
+  return `${datetime} ${message}`;
+};
 
 export const LogWindow: React.FC<LogWindowProps> = ({
   className,
   messages,
+  stripChannel: shouldStripChannel,
 }) => {
   const viewportRef = useRef<HTMLDivElement>(null);
   const onBottomFlagRef = useRef(true);
@@ -40,7 +49,7 @@ export const LogWindow: React.FC<LogWindowProps> = ({
     >
       {messages.map((message, index) => (
         <pre key={index} className="text-wrap">
-          {message}
+          {shouldStripChannel ? stripChannel(message) : message}
         </pre>
       ))}
     </ScrollArea>

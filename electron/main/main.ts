@@ -1,9 +1,8 @@
-import { app, BrowserWindow, ipcMain, shell } from "electron";
+import { app, BrowserWindow, shell } from "electron";
 import { ensureDirSync } from "fs-extra";
 import path from "path";
 import { Server } from "./Server";
-import { ConfigUtil } from "./ConfigUtil";
-import { Dotnet } from "./Dotnet";
+import { establishIpcConnection } from "./ipc";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
@@ -53,43 +52,7 @@ const createWindow = () => {
 
   const server = new Server(mainWindow.webContents);
 
-  ipcMain.handle("start", async () => {
-    server.start();
-  });
-
-  ipcMain.handle("stop", async () => {
-    server.stop();
-  });
-
-  ipcMain.handle("getConfig", async () => {
-    return ConfigUtil.getConfig();
-  });
-
-  ipcMain.handle("saveConfig", async (_, config) => {
-    ConfigUtil.saveConfig(config);
-  });
-
-  ipcMain.handle("initiateDllPathDialog", () =>
-    ConfigUtil.initiateDllPathDialog()
-  );
-
-  ipcMain.handle("initiateDataPathDialog", () =>
-    ConfigUtil.initiateDataPathDialog()
-  );
-
-  ipcMain.handle("sendCommand", async (_, command) => {
-    server.sendCommand(command);
-  });
-
-  ipcMain.handle("verifyDotnetInstalled", async () => !!Dotnet.find());
-
-  ipcMain.handle("selectDotnetPath", async () =>
-    ConfigUtil.initiateDotnetPathDialog()
-  );
-
-  ipcMain.handle("installDotnet", async () => {
-    await Dotnet.install();
-  });
+  establishIpcConnection(server);
 };
 
 // This method will be called when Electron has finished
