@@ -14,6 +14,7 @@ export interface Config {
     rule?: string;
     maxBufferSizeInGb?: number;
   };
+  createBackupOnStop?: boolean;
 }
 
 export class ConfigUtil {
