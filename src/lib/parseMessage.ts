@@ -5,23 +5,35 @@ export enum Channel {
 }
 
 export interface ParsedMessage {
-  datetime: string;
+  datetime: Date;
   channel: Channel;
   message: string;
 }
 
 export const parseMessage = (message: string): ParsedMessage | null => {
-  const regex = /(\d{1,2}\.\d{1,2}\.\d{4} \d{2}:\d{2}:\d{2}) \[(.*?)\] (.*)/;
-  const match = message.match(regex);
+  const regexForMessage =
+    /(\d{1,2}\.\d{1,2}\.\d{4} \d{2}:\d{2}:\d{2}) \[(.*?)\] (.*)/;
+  const regexForDate = /(\d{1,2})\.(\d{1,2})\.(\d{4}) (\d{2}):(\d{2}):(\d{2})/;
+  const messageMatch = message.match(regexForMessage);
 
-  if (match) {
-    const [, datetime, channel, message] = match;
+  if (messageMatch) {
+    const [, datetime, channel, message] = messageMatch;
 
-    return {
-      datetime: datetime.trim(),
-      channel: channel.trim() as Channel,
-      message: message.trim(),
-    };
+    const dateMatch = datetime.match(regexForDate);
+
+    if (dateMatch) {
+      const [day, month, year, hours, minutes, seconds] = dateMatch
+        .slice(1, 7)
+        .map(Number);
+
+      const datetime = new Date(year, month - 1, day, hours, minutes, seconds);
+
+      return {
+        datetime,
+        channel: channel.trim() as Channel,
+        message: message.trim(),
+      };
+    }
   }
 
   return null;

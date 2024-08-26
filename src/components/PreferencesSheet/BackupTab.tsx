@@ -32,6 +32,7 @@ export const BackupTab: React.FC<BackupTabProps> = ({ className }) => {
       rule?: string;
       maxBufferSizeInGb?: number;
     };
+    createBackupOnStop?: boolean;
   }>({
     defaultValues: {
       periodicBackup: {
@@ -39,6 +40,7 @@ export const BackupTab: React.FC<BackupTabProps> = ({ className }) => {
         rule: undefined,
         maxBufferSizeInGb: 12,
       },
+      createBackupOnStop: false,
     },
   });
 
@@ -47,6 +49,7 @@ export const BackupTab: React.FC<BackupTabProps> = ({ className }) => {
       if (config.periodicBackup) {
         reset({
           periodicBackup: config.periodicBackup,
+          createBackupOnStop: config.createBackupOnStop,
         });
       }
     });
@@ -54,21 +57,31 @@ export const BackupTab: React.FC<BackupTabProps> = ({ className }) => {
 
   const handleSave = () => window.api.saveConfig(getValues());
 
-  const isEnabled = watch("periodicBackup.enabled");
+  const isScheduleEnabled = watch("periodicBackup.enabled");
 
   useEffect(() => {
-    if (!isEnabled) {
+    if (!isScheduleEnabled) {
       resetField("periodicBackup.rule");
       resetField("periodicBackup.maxBufferSizeInGb");
     }
-  }, [isEnabled]);
+  }, [isScheduleEnabled]);
 
   return (
     <div className={className}>
       <div className="grid gap-4 py-4">
         <div className="grid gap-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Enabled</Label>
+            <Label className="text-right">On server stopping</Label>
+            <Controller
+              control={control}
+              name="createBackupOnStop"
+              render={({ field: { value, onChange } }) => (
+                <Switch checked={value} onCheckedChange={onChange} />
+              )}
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Enable schedule</Label>
             <Controller
               control={control}
               name="periodicBackup.enabled"
@@ -77,7 +90,7 @@ export const BackupTab: React.FC<BackupTabProps> = ({ className }) => {
               )}
             />
           </div>
-          {isEnabled && (
+          {isScheduleEnabled && (
             <>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label className="text-right">Frequency</Label>

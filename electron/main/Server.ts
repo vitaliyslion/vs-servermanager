@@ -107,19 +107,30 @@ export class Server {
     this.process.on("exit", handleClose);
   }
 
-  stop() {
+  private doStop() {
     return new Promise<void>((resolve, reject) => {
       if (this.process) {
+        if (ConfigUtil.get("createBackupOnStop")) {
+          this.generateBackup(this.backupScheduler.prefix);
+        }
+
         this.sendCommand("/stop");
 
         this.process.once("close", () => {
-          this.process = null;
           resolve();
         });
       } else {
         reject("Not running");
       }
     });
+  }
+
+  async stop() {
+    if (ConfigUtil.get("createBackupOnStop")) {
+      await this.generateBackup(this.backupScheduler.prefix);
+    }
+
+    return this.doStop();
   }
 
   sendCommand(command: string) {

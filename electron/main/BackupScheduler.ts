@@ -10,7 +10,7 @@ import { Server } from "./Server";
 import { ConfigUtil } from "./ConfigUtil";
 
 export class BackupScheduler {
-  private prefix = "auto-";
+  prefix = "auto-";
   private job: Job | null = null;
 
   constructor(private server: Server) {
@@ -141,8 +141,10 @@ export class BackupScheduler {
   }
 
   private onCalendarChanged(isRunning: boolean) {
-    if (isRunning && !this.job) {
-      this.createJob();
+    if (isRunning) {
+      if (!this.job) {
+        this.createJob();
+      }
     } else {
       this.cancelJob();
     }
