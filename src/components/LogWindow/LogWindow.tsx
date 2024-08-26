@@ -1,4 +1,5 @@
 import React, {
+  UIEventHandler,
   useCallback,
   useEffect,
   useMemo,
@@ -33,12 +34,16 @@ export const LogWindow: React.FC<LogWindowProps> = ({
     [messages]
   );
 
-  const handleAreaScroll = useCallback(() => {
+  const handleAreaScroll = useCallback<UIEventHandler<HTMLDivElement>>(() => {
     const viewport = viewportRef.current;
 
     if (viewport) {
-      onBottomFlagRef.current =
+      const isOnBottom =
         viewport.scrollTop + viewport.clientHeight === viewport.scrollHeight;
+
+      onBottomFlagRef.current = isOnBottom;
+
+      if (isOnBottom) return;
 
       if (dayVisibleTimeoutRef.current) {
         clearTimeout(dayVisibleTimeoutRef.current);
@@ -68,37 +73,44 @@ export const LogWindow: React.FC<LogWindowProps> = ({
       className={cn(className, "overflow-y-auto")}
       onScroll={handleAreaScroll}
     >
-      {parsedMessages.map((message, index) => (
-        <React.Fragment key={index}>
-          {((index > 0 &&
-            !isSameDay(message.datetime, parsedMessages[index - 1].datetime)) ||
-            index === 0) && (
-            <>
-              <VisibilityObserver className="[&.visible+.sticky]:opacity-100" />
-              <div
-                className={cn(
-                  "sticky top-2 opacity-0 ease-in-out transition-opacity duration-500 text-center py-2",
-                  dayVisible && "opacity-100"
-                )}
-              >
+      {parsedMessages.map((message, index) => {
+        const isFirst = index === 0;
+        const isNextDay =
+          index > 0 &&
+          !isSameDay(message.datetime, parsedMessages[index - 1].datetime);
+
+        return (
+          <React.Fragment key={index}>
+            {(isNextDay || isFirst) && (
+              <>
+                <VisibilityObserver className="[&.visible+.sticky]:opacity-100" />
                 <div
-                  key={index}
                   className={cn(
-                    "text-gray-500 bg-background inline-block px-2 py-1 rounded-md"
+                    "sticky top-2 opacity-0 ease-in-out transition-opacity duration-500 text-center py-2",
+                    dayVisible && "opacity-100"
                   )}
                 >
-                  {formatDate(message.datetime, "d MMMM yyyy")}
+                  <div
+                    key={index}
+                    className={cn(
+                      "text-gray-500 bg-background inline-block px-2 py-1 rounded-md"
+                    )}
+                  >
+                    {formatDate(message.datetime, "d MMMM yyyy")}
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
-          <pre key={index} className="text-wrap">
-            {`${formatDate(message.datetime, "HH:mm:ss")} ${
-              !shouldStripChannel && `[${message.channel}]`
-            } ${message.message}`}
-          </pre>
-        </React.Fragment>
-      ))}
+              </>
+            )}
+            <pre key={index} className="text-wrap">
+              <span className="text-gray-500">
+                {formatDate(message.datetime, "HH:mm:ss")}
+              </span>{" "}
+              {!shouldStripChannel && `[${message.channel}] `}
+              {message.message}
+            </pre>
+          </React.Fragment>
+        );
+      })}
     </ScrollArea>
   );
 };
