@@ -5,12 +5,12 @@ import { Dotnet } from "./Dotnet";
 import packageJson from "../../package.json";
 
 export const establishIpcConnection = (server: Server) => {
-  ipcMain.handle("start", async () => {
-    server.start();
+  ipcMain.handle("start", () => {
+    return server.start();
   });
 
-  ipcMain.handle("stop", async () => {
-    server.stop();
+  ipcMain.handle("stop", () => {
+    return server.stop();
   });
 
   ipcMain.handle("getConfig", async () => {

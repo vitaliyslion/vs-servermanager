@@ -98,4 +98,24 @@ export class LogsHandler {
       }
     });
   }
+
+  once({
+    channel,
+    message,
+    callback,
+  }: {
+    channel: Channel;
+    message: string;
+    callback: () => void;
+  }) {
+    const unsubscribe = this.subscribeToLogs((logMessage) => {
+      const { channel: logChannel, message: parsedMessage } =
+        parseMessage(logMessage);
+
+      if (logChannel === channel && parsedMessage === message) {
+        callback();
+        unsubscribe();
+      }
+    });
+  }
 }

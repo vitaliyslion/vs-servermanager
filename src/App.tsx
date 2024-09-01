@@ -14,10 +14,6 @@ export const App: React.FC = () => {
 
   const handleServerToggle = (isRunning: boolean) => {
     setRunning(isRunning);
-
-    if (isRunning) {
-      setMessages([]);
-    }
   };
 
   useEffect(() => {
@@ -57,6 +53,7 @@ export const App: React.FC = () => {
               className="w-full"
               isRunning={running}
               onToggle={handleServerToggle}
+              onStart={() => setMessages([])}
             />
 
             <LogsOutput className="flex-1 h-0" messages={messages} />
