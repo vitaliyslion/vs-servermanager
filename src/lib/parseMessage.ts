@@ -31,7 +31,7 @@ export const parseMessage = (message: string): ParsedMessage | null => {
       return {
         datetime,
         channel: channel.trim() as Channel,
-        message: message.trim(),
+        message: message,
       };
     }
   }

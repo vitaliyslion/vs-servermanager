@@ -1,8 +1,14 @@
 import { app, BrowserWindow, shell } from "electron";
+import log from "electron-log/main";
 import { ensureDirSync } from "fs-extra";
 import path from "path";
 import { Server } from "./Server";
 import { establishIpcConnection } from "./ipc";
+
+log.transports.file.resolvePathFn = (variables) => {
+  return path.join(variables.electronDefaultDir, variables.fileName);
+};
+log.errorHandler.startCatching();
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
@@ -50,6 +56,8 @@ const createWindow = () => {
     mainWindow.setMenu(null);
   }
 
+  log.info("Main window created");
+
   const server = new Server(mainWindow.webContents);
 
   establishIpcConnection(server);
@@ -66,6 +74,7 @@ app.on("ready", createWindow);
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
+    log.errorHandler.stopCatching();
   }
 });
 

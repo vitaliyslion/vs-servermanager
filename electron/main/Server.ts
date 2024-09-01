@@ -1,4 +1,5 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
+import log from "electron-log/main";
 import { Dotnet } from "./Dotnet";
 import { ConfigUtil } from "./ConfigUtil";
 import { ValidationError, ValidationIssue } from "@/errors/ValidatorError";
@@ -93,7 +94,7 @@ export class Server {
     });
 
     this.process.stderr.on("data", (data) => {
-      console.error(data.toString());
+      log.error("Server process error:", data.toString());
 
       this.webContents.send("server:stderr", data.toString());
     });

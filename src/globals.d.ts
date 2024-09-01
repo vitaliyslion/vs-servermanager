@@ -15,5 +15,7 @@ interface Window {
     selectDotnetPath: () => Promise<string | undefined>;
     installDotnet: () => Promise<void>;
     generateBackup: () => Promise<string>;
+
+    getAppInfo: () => Promise<{ version: string }>;
   };
 }

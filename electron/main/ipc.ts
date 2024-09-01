@@ -2,6 +2,7 @@ import { ipcMain } from "electron";
 import { Server } from "./Server";
 import { ConfigUtil } from "./ConfigUtil";
 import { Dotnet } from "./Dotnet";
+import packageJson from "../../package.json";
 
 export const establishIpcConnection = (server: Server) => {
   ipcMain.handle("start", async () => {
@@ -43,4 +44,8 @@ export const establishIpcConnection = (server: Server) => {
   });
 
   ipcMain.handle("generateBackup", async () => server.generateBackup());
+
+  ipcMain.handle("getAppInfo", async () => {
+    return { version: packageJson.version };
+  });
 };

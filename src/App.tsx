@@ -6,6 +6,7 @@ import { CommandInput } from "./components/CommandInput";
 import { Launch } from "./components/Launch";
 import { MainControlsPanel } from "./components/MainControlsPanel";
 import { TooltipProvider } from "./components/ui/tooltip";
+import { Footer } from "./components/Footer";
 
 export const App: React.FC = () => {
   const [running, setRunning] = useState(false);
@@ -50,15 +51,18 @@ export const App: React.FC = () => {
   return (
     <TooltipProvider delayDuration={300}>
       <Launch>
-        <div className="h-screen flex flex-col p-2 space-y-2">
-          <MainControlsPanel
-            className="w-full"
-            isRunning={running}
-            onToggle={handleServerToggle}
-          />
+        <div className="h-screen flex flex-col">
+          <div className="flex flex-1 h-0 flex-col p-2 space-y-2">
+            <MainControlsPanel
+              className="w-full"
+              isRunning={running}
+              onToggle={handleServerToggle}
+            />
 
-          <LogsOutput className="flex-1 h-0" messages={messages} />
-          <CommandInput className="w-full relative" disabled={!running} />
+            <LogsOutput className="flex-1 h-0" messages={messages} />
+            <CommandInput className="w-full relative" disabled={!running} />
+          </div>
+          <Footer />
         </div>
       </Launch>
       <Toaster />

@@ -8,6 +8,7 @@ import {
 } from "fs-extra";
 import { Server } from "./Server";
 import { ConfigUtil } from "./ConfigUtil";
+import log from "electron-log/main";
 
 export class BackupScheduler {
   prefix = "auto-";
@@ -33,16 +34,16 @@ export class BackupScheduler {
       this.job = scheduleJob(config.periodicBackup.rule, async () => {
         const newBackupName = await this.server.generateBackup(this.prefix);
 
-        console.log(`Backup created - ${newBackupName}`);
-        console.log(`Next backup: ${this.job.nextInvocation()}`);
+        log.info(`Backup created - ${newBackupName}`);
+        log.info(`Next backup: ${this.job.nextInvocation()}`);
 
         this.removeAutoBackupsExceedingMaxBufferSize(
           config.periodicBackup.maxBufferSizeInGb
         );
       });
 
-      console.log(`Scheduled backup job to ${config.periodicBackup.rule}`);
-      console.log(`Next backup: ${this.job.nextInvocation()}`);
+      log.info(`Scheduled backup job to ${config.periodicBackup.rule}`);
+      log.info(`Next backup: ${this.job.nextInvocation()}`);
     }
   }
 
@@ -77,14 +78,12 @@ export class BackupScheduler {
 
     const maxSizeInBytes = maxSizeInGb * 1024 * 1024 * 1024;
 
-    console.log(`Total size of backups: ${totalSizeInBytes / 1024 / 1024} MB`);
-    console.log(`Max size allowed: ${maxSizeInBytes / 1024 / 1024} MB`);
+    log.info(`Total size of backups: ${totalSizeInBytes / 1024 / 1024} MB`);
+    log.info(`Max size allowed: ${maxSizeInBytes / 1024 / 1024} MB`);
 
     if (totalSizeInBytes > maxSizeInBytes) {
-      console.log(
-        `Total size of backups: ${totalSizeInBytes / 1024 / 1024} MB`
-      );
-      console.log(`Max size allowed: ${maxSizeInBytes / 1024 / 1024} MB`);
+      log.info(`Total size of backups: ${totalSizeInBytes / 1024 / 1024} MB`);
+      log.info(`Max size allowed: ${maxSizeInBytes / 1024 / 1024} MB`);
 
       const sortedFiles = Object.entries(backupStats)
         .sort(([, stat1], [, stat2]) => stat1.size - stat2.size)
@@ -94,7 +93,7 @@ export class BackupScheduler {
         );
 
       if (sortedFiles.length <= 1) {
-        console.log("No backups to remove");
+        log.info("No backups to remove");
 
         return;
       }
@@ -109,12 +108,12 @@ export class BackupScheduler {
 
         removedSize += stat.size;
 
-        console.log(`Removing backup: ${file}`);
+        log.info(`Removing backup: ${file}`);
 
         unlinkSync(`${backupsFolder}/${file}`);
       }
 
-      console.log(
+      log.info(
         `Removed backups to free up space: ${removedSize / 1024 / 1024} MB`
       );
     }
@@ -126,8 +125,8 @@ export class BackupScheduler {
     if (rule) {
       this.job.reschedule(rule);
 
-      console.log(`Rescheduled backup job to ${rule}`);
-      console.log(`Next backup: ${this.job.nextInvocation()}`);
+      log.info(`Rescheduled backup job to ${rule}`);
+      log.info(`Next backup: ${this.job.nextInvocation()}`);
     }
   }
 
@@ -136,7 +135,7 @@ export class BackupScheduler {
       this.job.cancel();
       this.job = null;
 
-      console.log("Canceled backup job");
+      log.info("Canceled backup job");
     }
   }
 

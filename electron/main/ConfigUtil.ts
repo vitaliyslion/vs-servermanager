@@ -1,5 +1,6 @@
 import { app, dialog } from "electron";
 import { existsSync, readJSONSync, writeFileSync } from "fs-extra";
+import log from "electron-log/main";
 import { isWindows } from "./os";
 import { Dotnet } from "./Dotnet";
 
@@ -70,7 +71,7 @@ export class ConfigUtil {
       ...config,
     };
 
-    console.log("Saving config", this.config);
+    log.info("Saving config", this.config);
 
     this.changeListeners.forEach((listener) => listener(this.config));
     this.save();

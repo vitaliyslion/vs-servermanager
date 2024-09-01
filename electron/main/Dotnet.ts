@@ -2,6 +2,7 @@ import { sync } from "which";
 import path from "path";
 import fs from "fs-extra";
 import os from "os";
+import log from "electron-log/main";
 import { spawn } from "child_process";
 
 export class Dotnet {
@@ -53,8 +54,8 @@ export class Dotnet {
           "-Command",
           "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; &([scriptblock]::Create((Invoke-WebRequest -UseBasicParsing 'https://dot.net/v1/dotnet-install.ps1')))",
         ]);
-        ps.stdout.on("data", (data) => console.log(data.toString()));
-        ps.stderr.on("data", (data) => console.error(data.toString()));
+        ps.stdout.on("data", (data) => log.info(data.toString()));
+        ps.stderr.on("data", (data) => log.error(data.toString()));
         ps.on("exit", handleExit);
         ps.stdin.end();
       } else {
@@ -62,8 +63,8 @@ export class Dotnet {
           "-c",
           "curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin",
         ]);
-        bash.stdout.on("data", (data) => console.log(data.toString()));
-        bash.stderr.on("data", (data) => console.error(data.toString()));
+        bash.stdout.on("data", (data) => log.info(data.toString()));
+        bash.stderr.on("data", (data) => log.error(data.toString()));
         bash.on("exit", handleExit);
         bash.stdin.end();
       }
