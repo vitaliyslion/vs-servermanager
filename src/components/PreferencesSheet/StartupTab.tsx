@@ -60,9 +60,14 @@ export const StartupTab: React.FC<StartupTabProps> = ({ className }) => {
   const handleSave = async () => {
     try {
       await window.api.saveConfig(getValues());
+
+      toast({
+        title: "Startup config saved",
+        description: "Please restart the server for changes to take effect",
+      });
     } catch (error) {
       toast({
-        title: "Error",
+        title: "Startup config save failed",
         description: error.message,
         variant: "destructive",
       });
