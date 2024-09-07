@@ -1,4 +1,5 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
+import log from "electron-log/main";
 import { Dotnet } from "./Dotnet";
 import { ConfigUtil } from "./ConfigUtil";
 import { ValidationError, ValidationIssue } from "@/errors/ValidatorError";
@@ -64,47 +65,57 @@ export class Server {
   }
 
   start() {
-    if (this.process) {
-      throw new Error("Already running");
-    }
+    return new Promise<void>((resolve, reject) => {
+      if (this.process) {
+        reject(new Error("Already running"));
+        return;
+      }
 
-    const validationIssues = this.validate();
+      const validationIssues = this.validate();
 
-    if (validationIssues.length) {
-      throw new ValidationError(validationIssues);
-    }
+      if (validationIssues.length) {
+        reject(new ValidationError(validationIssues));
+        return;
+      }
 
-    const port = ConfigUtil.get("port") || 42420;
-    const dotnet = ConfigUtil.get("dotnetPath") || Dotnet.find();
+      const port = ConfigUtil.get("port") || 42420;
+      const dotnet = ConfigUtil.get("dotnetPath") || Dotnet.find();
 
-    this.process = spawn(dotnet, [
-      ConfigUtil.get("serverDllPath"),
-      "--dataPath",
-      ConfigUtil.get("serverDataPath"),
-      "--port",
-      port.toString(),
-    ]);
+      this.process = spawn(dotnet, [
+        ConfigUtil.get("serverDllPath"),
+        "--dataPath",
+        ConfigUtil.get("serverDataPath"),
+        "--port",
+        port.toString(),
+      ]);
 
-    this.process.stdout.on("data", (data) => {
-      const message = data.toString();
+      this.process.stdout.on("data", (data) => {
+        const message = data.toString();
 
-      this.logsHandler.pushLog(message);
-      this.webContents.send("server:stdout", message);
+        this.logsHandler.pushLog(message);
+        this.webContents.send("server:stdout", message);
+      });
+
+      this.process.stderr.on("data", (data) => {
+        log.error("Server process error:", data.toString());
+
+        this.webContents.send("server:stderr", data.toString());
+      });
+
+      this.logsHandler.once({
+        channel: Channel.ServerEvent,
+        message: `Dedicated Server now running on Port ${port} and all ips!`,
+        callback: () => resolve(),
+      });
+
+      const handleClose = (code: number) => {
+        this.webContents.send("server:close", code);
+        this.cleanup();
+      };
+
+      this.process.on("close", handleClose);
+      this.process.on("exit", handleClose);
     });
-
-    this.process.stderr.on("data", (data) => {
-      console.error(data.toString());
-
-      this.webContents.send("server:stderr", data.toString());
-    });
-
-    const handleClose = (code: number) => {
-      this.webContents.send("server:close", code);
-      this.cleanup();
-    };
-
-    this.process.on("close", handleClose);
-    this.process.on("exit", handleClose);
   }
 
   private doStop() {

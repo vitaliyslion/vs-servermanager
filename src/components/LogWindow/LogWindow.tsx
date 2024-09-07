@@ -101,13 +101,13 @@ export const LogWindow: React.FC<LogWindowProps> = ({
                 </div>
               </>
             )}
-            <pre key={index} className="text-wrap">
+            <div key={index}>
               <span className="text-gray-500">
                 {formatDate(message.datetime, "HH:mm:ss")}
               </span>{" "}
               {!shouldStripChannel && `[${message.channel}] `}
-              {message.message}
-            </pre>
+              <pre className="text-wrap inline">{message.message}</pre>
+            </div>
           </React.Fragment>
         );
       })}

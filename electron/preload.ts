@@ -30,15 +30,10 @@ const api: Window["api"] = {
   initiateDataPathDialog: () => ipcRenderer.invoke("initiateDataPathDialog"),
   sendCommand: (command) => ipcRenderer.invoke("sendCommand", command),
   verifyDotnetInstalled: () => ipcRenderer.invoke("verifyDotnetInstalled"),
-  selectDotnetPath: async () => {
-    try {
-      return ipcRenderer.invoke("selectDotnetPath");
-    } catch (error) {
-      console.error(error);
-    }
-  },
+  selectDotnetPath: async () => ipcRenderer.invoke("selectDotnetPath"),
   installDotnet: () => ipcRenderer.invoke("installDotnet"),
   generateBackup: () => ipcRenderer.invoke("generateBackup"),
+  getAppInfo: () => ipcRenderer.invoke("getAppInfo"),
 };
 
 contextBridge.exposeInMainWorld("api", api);

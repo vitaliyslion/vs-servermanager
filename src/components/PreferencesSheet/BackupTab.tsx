@@ -12,12 +12,15 @@ import {
 import { Input } from "../ui/input";
 import { FormField } from "../FormField";
 import { Button } from "../ui/button";
+import { useToast } from "../ui/use-toast";
 
 export interface BackupTabProps {
   className?: string;
 }
 
 export const BackupTab: React.FC<BackupTabProps> = ({ className }) => {
+  const { toast } = useToast();
+
   const {
     control,
     watch,
@@ -55,7 +58,21 @@ export const BackupTab: React.FC<BackupTabProps> = ({ className }) => {
     });
   }, []);
 
-  const handleSave = () => window.api.saveConfig(getValues());
+  const handleSave = async () => {
+    try {
+      await window.api.saveConfig(getValues());
+
+      toast({
+        title: "Backup config saved",
+      });
+    } catch (error) {
+      toast({
+        title: "Backup config save failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   const isScheduleEnabled = watch("periodicBackup.enabled");
 

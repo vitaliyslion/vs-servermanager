@@ -2,14 +2,15 @@ import { ipcMain } from "electron";
 import { Server } from "./Server";
 import { ConfigUtil } from "./ConfigUtil";
 import { Dotnet } from "./Dotnet";
+import packageJson from "../../package.json";
 
 export const establishIpcConnection = (server: Server) => {
-  ipcMain.handle("start", async () => {
-    server.start();
+  ipcMain.handle("start", () => {
+    return server.start();
   });
 
-  ipcMain.handle("stop", async () => {
-    server.stop();
+  ipcMain.handle("stop", () => {
+    return server.stop();
   });
 
   ipcMain.handle("getConfig", async () => {
@@ -43,4 +44,8 @@ export const establishIpcConnection = (server: Server) => {
   });
 
   ipcMain.handle("generateBackup", async () => server.generateBackup());
+
+  ipcMain.handle("getAppInfo", async () => {
+    return { version: packageJson.version };
+  });
 };

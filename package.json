@@ -51,6 +51,7 @@
   "license": "MIT",
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.0",
+    "@radix-ui/react-collapsible": "^1.1.0",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-scroll-area": "^1.1.0",
@@ -63,6 +64,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
+    "electron-log": "^5.1.7",
     "electron-squirrel-startup": "^1.0.1",
     "fs-extra": "^11.2.0",
     "lucide-react": "^0.427.0",
