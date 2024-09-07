@@ -1,7 +1,7 @@
 {
   "name": "vs-servermanager",
   "productName": "Vintage Story Server Manager",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "GUI for managing Vintage Story server",
   "main": ".vite/build/main.js",
   "scripts": {
