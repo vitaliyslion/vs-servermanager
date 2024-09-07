@@ -43,7 +43,7 @@ export const PreferencesSheet: React.FC = () => {
         </Button>
       </SheetTrigger>
       <SheetContent
-        side="left"
+        side="right"
         className="max-w-none w-4/5 sm:max-w-none flex flex-col space-y-2"
       >
         <SheetHeader>
